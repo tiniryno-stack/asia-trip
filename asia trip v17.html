@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Taipei Trip Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#08080f;--surface:#111118;--surface2:#18181f;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#f0f0f5;--muted:#7a7a8a;--dim:#2e2e3e;
+  --sleep:#3b82f6;--sleep-bg:rgba(59,130,246,0.12);--sleep-border:rgba(59,130,246,0.3);
+  --flight:#22c55e;--flight-bg:rgba(34,197,94,0.1);--flight-border:rgba(34,197,94,0.3);
+  --layover:#f59e0b;--layover-bg:rgba(245,158,11,0.1);--layover-border:rgba(245,158,11,0.3);
+  --taipei:#06b6d4;--taipei-bg:rgba(6,182,212,0.1);--taipei-border:rgba(6,182,212,0.3);
+  --warn:#f97316;--warn-bg:rgba(249,115,22,0.1);--warn-border:rgba(249,115,22,0.3);
+  --awake:#a855f7;--awake-bg:rgba(168,85,247,0.1);--awake-border:rgba(168,85,247,0.3);
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── TOP NAV ── */
+.tab-nav{position:sticky;top:0;z-index:100;background:rgba(8,8,15,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border2);display:flex;align-items:stretch;}
+.nav-brand{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--taipei);padding:0 14px;display:flex;align-items:center;border-right:1px solid var(--border);letter-spacing:0.05em;white-space:nowrap;flex-shrink:0;}
+.nav-tabs{display:flex;flex:1;overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.tab-btn{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);padding:14px 13px;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.tab-btn.active{color:var(--taipei);border-bottom-color:var(--taipei);}
+.tab-btn:hover:not(.active){color:var(--text);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* ── ITINERARY ── */
+.hero{padding:44px 22px 28px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60px;left:-60px;width:280px;height:280px;background:radial-gradient(circle,rgba(6,182,212,0.09) 0%,transparent 70%);pointer-events:none;}
+.tag{display:inline-flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--taipei);border:1px solid var(--taipei-border);background:var(--taipei-bg);padding:4px 10px;border-radius:100px;margin-bottom:14px;}
+.hero h1{font-size:34px;font-weight:800;line-height:1.05;letter-spacing:-0.02em;margin-bottom:6px;}
+.hero h1 span{color:var(--taipei);}
+.hero-sub{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:20px;}
+.lag-pill{display:inline-flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:10px 14px;}
+.lag-number{font-size:20px;font-weight:800;color:var(--warn);font-family:'JetBrains Mono',monospace;line-height:1;}
+.lag-label{font-size:11px;line-height:1.3;color:var(--muted);}
+.lag-label strong{display:block;color:var(--text);font-size:12px;}
+.section-header{display:flex;align-items:center;gap:10px;padding:18px 22px 8px;}
+.section-header-line{flex:1;height:1px;background:var(--border);}
+.section-header-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);white-space:nowrap;}
+.timeline{padding:0 22px;}
+.tl-item{display:grid;grid-template-columns:78px 78px 26px 1fr;gap:0 7px;position:relative;}
+.time-dfw{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:right;padding-top:10px;line-height:1.5;}
+.time-local{font-family:'JetBrains Mono',monospace;font-size:10px;text-align:right;padding-top:10px;line-height:1.5;}
+.time-zone-tag{display:block;font-size:8px;opacity:0.55;margin-top:1px;}
+.tl-dot-col{display:flex;flex-direction:column;align-items:center;padding-top:10px;}
+.tl-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;z-index:1;}
+.tl-dot-ring{width:11px;height:11px;border-radius:50%;flex-shrink:0;border:2px solid;z-index:1;background:var(--bg);}
+.tl-line{width:1px;flex:1;min-height:18px;background:var(--border);margin:3px 0;}
+.tl-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:9px 12px;margin-bottom:7px;}
+.tl-card.sleep{border-color:var(--sleep-border);background:var(--sleep-bg);}
+.tl-card.flight{border-color:var(--flight-border);background:var(--flight-bg);}
+.tl-card.layover{border-color:var(--layover-border);background:var(--layover-bg);}
+.tl-card.taipei{border-color:var(--taipei-border);background:var(--taipei-bg);}
+.tl-card.warn{border-color:var(--warn-border);background:var(--warn-bg);}
+.tl-card.awake{border-color:var(--awake-border);background:var(--awake-bg);}
+.card-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:2px;line-height:1.3;}
+.card-sub{font-size:11px;color:var(--muted);line-height:1.5;}
+.card-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;padding:2px 7px;border-radius:100px;margin-top:4px;letter-spacing:0.05em;}
+.badge-sleep{background:var(--sleep-bg);color:var(--sleep);border:1px solid var(--sleep-border);}
+.badge-flight{background:var(--flight-bg);color:var(--flight);border:1px solid var(--flight-border);}
+.badge-taipei{background:var(--taipei-bg);color:var(--taipei);border:1px solid var(--taipei-border);}
+.badge-warn{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border);}
+.col-headers{display:grid;grid-template-columns:78px 78px 26px 1fr;gap:0 7px;padding:0 22px 6px;}
+.col-header{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);text-align:right;}
+.col-header.left{text-align:left;}
+.lag-callout{margin:0 22px;background:var(--surface2);border:1px solid var(--warn-border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;}
+.lag-callout-num{font-size:26px;font-weight:800;color:var(--warn);font-family:'JetBrains Mono',monospace;line-height:1;flex-shrink:0;}
+.lag-callout-text{font-size:12px;color:var(--muted);line-height:1.5;}
+.lag-callout-text strong{color:var(--text);}
+.footer{padding:28px 22px 48px;text-align:center;}
+.footer-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.08em;}
+
+/* ── SIMULATION ── */
+#sim{min-height:100vh;position:relative;}
+#starfield{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;}
+.sim-inner{position:relative;z-index:1;padding:16px 16px 40px;}
+
+.leg-pills{display:flex;gap:6px;margin:14px 0 10px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.leg-pills::-webkit-scrollbar{display:none;}
+.leg-pill{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:8px 11px;border-radius:100px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.leg-pill.active{background:var(--taipei-bg);border-color:var(--taipei-border);color:var(--taipei);}
+.leg-pill.done{border-color:var(--flight-border);color:var(--flight);}
+
+.leg-banner{background:var(--surface2);border:1px solid var(--border2);border-radius:12px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.leg-banner-left{font-size:14px;font-weight:700;}
+.leg-banner-right{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-align:right;}
+
+.clocks{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin:12px 0;}
+.clock-card{background:rgba(17,17,24,0.9);border:1px solid var(--border2);border-radius:12px;padding:10px 6px;text-align:center;backdrop-filter:blur(8px);transition:border-color 0.3s,box-shadow 0.3s;}
+.clock-city{font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;line-height:1.4;}
+.clock-time{font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;line-height:1;letter-spacing:0.01em;}
+.clock-date{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);margin-top:3px;}
+.clock-card.active-zone{border-color:var(--taipei);box-shadow:0 0 18px rgba(6,182,212,0.2);}
+
+.globe-wrap{position:relative;margin:12px 0;border-radius:16px;overflow:hidden;background:#060810;border:1px solid var(--border2);}
+#globeCanvas{width:100%;display:block;}
+
+.scrubber-wrap{margin:10px 0;}
+.scrubber-row{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:6px;align-items:center;}
+.scrubber-center{color:var(--taipei);font-weight:600;font-size:9px;}
+input[type=range].scrubber{width:100%;-webkit-appearance:none;appearance:none;height:3px;border-radius:2px;background:var(--dim);outline:none;}
+input[type=range].scrubber::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;background:var(--taipei);cursor:pointer;box-shadow:0 0 12px rgba(6,182,212,0.6);}
+input[type=range].scrubber::-moz-range-thumb{width:20px;height:20px;border-radius:50%;background:var(--taipei);cursor:pointer;border:none;}
+
+.controls{display:flex;align-items:center;justify-content:center;gap:14px;margin:14px 0;}
+.ctrl-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.ctrl-btn:hover{border-color:var(--taipei);color:var(--taipei);}
+.ctrl-btn:active{transform:scale(0.93);}
+
+/* Play/pause — animated rings when playing */
+.play-btn{width:60px;height:60px;font-size:22px;border-color:var(--taipei-border);background:var(--taipei-bg);color:var(--taipei);position:relative;}
+.play-btn::before,.play-btn::after{content:'';position:absolute;border-radius:50%;border:1.5px solid rgba(6,182,212,0);top:50%;left:50%;transform:translate(-50%,-50%);width:100%;height:100%;pointer-events:none;}
+.play-btn.playing::before{animation:sonar1 1.8s ease-out infinite;}
+.play-btn.playing::after{animation:sonar1 1.8s ease-out 0.7s infinite;}
+@keyframes sonar1{
+  0%{width:100%;height:100%;border-color:rgba(6,182,212,0.6);opacity:1;}
+  100%{width:200%;height:200%;border-color:rgba(6,182,212,0);opacity:0;}
+}
+
+/* Speed cycle button — pill shape showing current speed */
+.speed-btn{border-radius:100px;padding:0 16px;width:auto;min-width:56px;height:44px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.05em;border-color:var(--border2);color:var(--muted);}
+.speed-btn:hover{color:var(--taipei);border-color:var(--taipei-border);}
+.speed-btn.fast{border-color:var(--warn-border);color:var(--warn);background:var(--warn-bg);}
+
+.event-feed{margin:12px 0;}
+.event-feed-title{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;}
+.event-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.event-item:last-child{border-bottom:none;}
+.event-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.event-body{flex:1;}
+.event-title{font-size:12px;font-weight:600;line-height:1.3;}
+.event-sub-text{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+.event-item.past .event-title{color:var(--muted);}
+.event-item.current{background:var(--surface2);border-radius:10px;padding:9px 10px;margin:0 -2px;border-bottom:none;}
+.event-item.current .event-title{color:var(--taipei);}
+
+.placeholder{padding:60px 24px;text-align:center;}
+.placeholder-icon{font-size:44px;margin-bottom:14px;}
+.placeholder-title{font-size:19px;font-weight:800;margin-bottom:8px;}
+.placeholder-sub{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* ── ITINERARY CARDS ── */
+.itin-city{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:9px 16px;border-radius:100px;border:1px solid var(--border2);background:var(--surface);color:var(--muted);cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.itin-city.active{background:rgba(168,85,247,0.12);border-color:rgba(168,85,247,0.4);color:var(--awake);}
+.day-grid{display:flex;flex-direction:column;gap:10px;}
+.day-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color 0.2s;}
+.day-card:hover{border-color:var(--border2);}
+.day-card.open{border-color:rgba(168,85,247,0.3);}
+.day-card-top{display:grid;grid-template-columns:46px 1fr auto;grid-template-rows:auto auto auto;gap:2px 10px;padding:14px 14px 12px;align-items:start;}
+.day-badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;padding:3px 8px;border-radius:100px;border:1px solid;text-align:center;grid-row:1;grid-column:1;width:fit-content;}
+.day-dow{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;grid-row:1;grid-column:2;padding-top:4px;}
+.day-title{font-size:14px;font-weight:700;color:var(--text);grid-row:2;grid-column:2;line-height:1.3;}
+.day-chips{display:flex;flex-wrap:wrap;gap:4px;grid-row:3;grid-column:2;margin-top:4px;}
+.day-chevron{font-size:20px;color:var(--dim);grid-row:1/4;grid-column:3;align-self:center;transition:transform 0.25s;line-height:1;}
+.day-card.open .day-chevron{transform:rotate(90deg);}
+.chip{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:500;padding:2px 7px;border-radius:100px;letter-spacing:0.04em;}
+.chip-land{background:var(--taipei-bg);color:var(--taipei);}
+.chip-food{background:rgba(249,115,22,0.12);color:var(--warn);}
+.chip-night{background:rgba(168,85,247,0.1);color:var(--awake);}
+.chip-trip{background:var(--layover-bg);color:var(--layover);}
+.chip-hike{background:rgba(34,197,94,0.1);color:var(--flight);}
+.chip-class{background:var(--sleep-bg);color:var(--sleep);}
+.chip-shop{background:rgba(99,102,241,0.1);color:#818cf8;}
+.chip-spa{background:rgba(236,72,153,0.1);color:#f472b6;}
+.chip-fly{background:var(--flight-bg);color:var(--flight);}
+.chip-culture{background:var(--taipei-bg);color:var(--taipei);}
+.day-detail{max-height:0;overflow:hidden;transition:max-height 0.35s ease;border-top:0px solid var(--border);}
+.day-card.open .day-detail{max-height:600px;border-top-width:1px;}
+.detail-row{display:flex;align-items:baseline;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.4;}
+.detail-row:last-child{border-bottom:none;padding-bottom:12px;}
+.detail-row span{color:var(--text);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.tl-item{animation:fadeUp 0.35s ease both;}
+</style>
+</head>
+<body>
+<canvas id="starfield"></canvas>
+
+<nav class="tab-nav">
+  <div class="nav-brand">TPE 🛫</div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('itinerary',this)">Flight Schedule</button>
+    <button class="tab-btn" onclick="switchTab('sim',this)">Flight Sim</button>
+    <button class="tab-btn" onclick="switchTab('tripit',this)">Asia Trip</button>
+  </div>
+</nav>
+
+<!-- ══ ITINERARY ══ -->
+<div id="itinerary" class="tab-content active">
+  <div class="hero">
+    <div class="tag">DFW → SFO → TPE · Apr 1–3</div>
+    <h1>Taipei<br><span>Travel Plan</span></h1>
+    <p class="hero-sub">Confirmation P6VNMG · UA 1718 + UA 853</p>
+    <div class="lag-pill">
+      <div class="lag-number">13h</div>
+      <div class="lag-label"><strong>Time zone gap</strong>Dallas CDT → Taipei CST</div>
+    </div>
+  </div>
+  <div class="col-headers">
+    <div class="col-header">DFW CDT</div><div class="col-header">Local</div>
+    <div></div><div class="col-header left">Event</div>
+  </div>
+
+  <div class="section-header"><div class="section-header-line"></div><div class="section-header-label">Tonight · Dallas</div><div class="section-header-line"></div></div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time-dfw">3:00 am<span class="time-zone-tag">CDT</span></div>
+      <div class="time-local" style="color:var(--muted)">3:00 am<span class="time-zone-tag">same</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--warn)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card warn"><div class="card-title">Wind down now</div><div class="card-sub">Stop screens · prep bags · lay out passport & docs</div></div></div>
+    </div>
+    <div class="tl-item">
+      <div class="time-dfw">3:30 am<span class="time-zone-tag">CDT</span></div>
+      <div class="time-local" style="color:var(--muted)">3:30 am<span class="time-zone-tag">same</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--sleep)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card sleep"><div class="card-title">Sleep — 5 hrs</div><div class="card-sub">Last real sleep before the long haul · set an alarm</div><span class="card-badge badge-sleep">SLEEP WINDOW</span></div></div>
+    </div>
+    <div class="tl-item">
+      <div class="time-dfw">8:30 am<span class="time-zone-tag">CDT</span></div>
+      <div class="time-local" style="color:var(--muted)">8:30 am<span class="time-zone-tag">same</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--awake)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card awake"><div class="card-title">Wake up</div><div class="card-sub">Get sunlight · eat a real meal · finish packing</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-header"><div class="section-header-line"></div><div class="section-header-label">Flight 1 · UA 1718 · DFW → SFO</div><div class="section-header-line"></div></div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time-dfw">7:43 pm<span class="time-zone-tag">CDT</span></div>
+      <div class="time-local" style="color:var(--flight)">7:43 pm<span class="time-zone-tag">CDT</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--flight)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card flight"><div class="card-title">Departs DFW · Gate E5</div><div class="card-sub">Terminal E · 3h 58m · STAY AWAKE this whole flight</div><span class="card-badge badge-flight">NO SLEEPING</span></div></div>
+    </div>
+    <div class="tl-item">
+      <div class="time-dfw">9:41 pm<span class="time-zone-tag">CDT</span></div>
+      <div class="time-local" style="color:var(--layover)">7:41 pm<span class="time-zone-tag">PDT −2hr</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--layover)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card layover"><div class="card-title">Arrive SFO · Now on PDT</div><div class="card-sub">SFO is 2 hrs behind Dallas · clock shifts back to 7:41 pm local</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-header"><div class="section-header-line"></div><div class="section-header-label">Layover · SFO · 1hr 39min</div><div class="section-header-line"></div></div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time-dfw">9:41 pm<span class="time-zone-tag">CDT</span></div>
+      <div class="time-local" style="color:var(--layover)">7:41 pm<span class="time-zone-tag">PDT</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--layover)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card layover"><div class="card-title">Layover · Terminal 3, Concourse F</div><div class="card-sub">Eat & hydrate · gate INTL · board 10:30 pm PDT · boarding ends 11:05 pm PDT</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-header"><div class="section-header-line"></div><div class="section-header-label">Flight 2 · UA 853 · SFO → TPE · 13h 45m</div><div class="section-header-line"></div></div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time-dfw">1:20 am<span class="time-zone-tag">CDT Apr 2</span></div>
+      <div class="time-local" style="color:var(--flight)">11:20 pm<span class="time-zone-tag">PDT Apr 1</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--flight)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card flight"><div class="card-title">Departs SFO · Gate INTL</div><div class="card-sub">Stay awake ~1 hr then sleep · this flight resets your clock</div></div></div>
+    </div>
+    <div class="tl-item">
+      <div class="time-dfw">2:20 am<span class="time-zone-tag">CDT Apr 2</span></div>
+      <div class="time-local" style="color:var(--sleep)">12:20 am<span class="time-zone-tag">PDT Apr 2</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--sleep)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card sleep"><div class="card-title">Sleep on plane — 6 to 7 hrs</div><div class="card-sub">Eye mask · recline · headphones · key sleep window</div><span class="card-badge badge-sleep">KEY SLEEP WINDOW</span></div></div>
+    </div>
+    <div class="tl-item">
+      <div class="time-dfw">~9:30 am<span class="time-zone-tag">CDT Apr 2</span></div>
+      <div class="time-local" style="color:var(--awake)">~7:30 am<span class="time-zone-tag">PDT Apr 2</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--awake)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card awake"><div class="card-title">Wake up on plane</div><div class="card-sub">~3.5 hrs before landing · eat breakfast service · stay awake</div></div></div>
+    </div>
+  </div>
+
+  <div class="section-header"><div class="section-header-line"></div><div class="section-header-label">Arrival · Taipei · TPE</div><div class="section-header-line"></div></div>
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="time-dfw">3:05 pm<span class="time-zone-tag">CDT Apr 2</span></div>
+      <div class="time-local" style="color:var(--taipei)">4:05 am<span class="time-zone-tag">CST Apr 3</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--taipei)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card taipei"><div class="card-title">Land in Taipei</div><div class="card-sub">Body thinks it's 3 pm yesterday · Taipei is 13 hrs ahead of Dallas</div><span class="card-badge badge-taipei">+13 HRS FROM DFW</span></div></div>
+    </div>
+    <div class="tl-item">
+      <div class="time-dfw">4:00 pm<span class="time-zone-tag">CDT Apr 2</span></div>
+      <div class="time-local" style="color:var(--taipei)">5:00 am<span class="time-zone-tag">TPE</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--taipei)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card taipei"><div class="card-title">Get outside — sunlight ASAP</div><div class="card-sub">#1 jet lag reset · 20–30 min outside forces your body clock forward</div><span class="card-badge badge-taipei">CRITICAL</span></div></div>
+    </div>
+    <div class="tl-item">
+      <div class="time-dfw">8:00 am<span class="time-zone-tag">CDT Apr 3</span></div>
+      <div class="time-local" style="color:var(--sleep)">9:00 pm<span class="time-zone-tag">TPE Apr 3</span></div>
+      <div class="tl-dot-col"><div class="tl-dot" style="background:var(--sleep)"></div><div class="tl-line"></div></div>
+      <div><div class="tl-card sleep"><div class="card-title">Sleep — Taipei bedtime</div><div class="card-sub">Push through the whole day · no napping</div></div></div>
+    </div>
+    <div class="tl-item">
+      <div class="time-dfw">7:00 pm<span class="time-zone-tag">CDT Apr 3</span></div>
+      <div class="time-local" style="color:var(--taipei)">6:00 am<span class="time-zone-tag">TPE Apr 4</span></div>
+      <div class="tl-dot-col"><div class="tl-dot-ring" style="border-color:var(--taipei)"></div></div>
+      <div><div class="tl-card taipei"><div class="card-title">Wake up · Morning pickleball 🏓</div><div class="card-sub">Locked into Taipei time · early bird achieved</div><span class="card-badge badge-taipei">MISSION COMPLETE</span></div></div>
+    </div>
+  </div>
+
+  <div style="height:20px"></div>
+  <div class="lag-callout">
+    <div class="lag-callout-num">13h</div>
+    <div class="lag-callout-text"><strong>When it's 6am in Taipei</strong> it's 5pm the day before in Dallas. Sunlight on arrival is the fastest way to close that gap.</div>
+  </div>
+  <div class="footer"><div class="footer-text">UA 1718 + UA 853 · P6VNMG · Have a great trip ✈</div></div>
+</div>
+
+<!-- ══ FLIGHT SIM ══ -->
+<div id="sim" class="tab-content">
+  <div class="sim-inner">
+    <div class="leg-pills">
+      <div class="leg-pill active" id="lp0" onclick="selectLeg(0)">🛫 DFW → SFO</div>
+      <div class="leg-pill" id="lp1" onclick="selectLeg(1)">⏱ SFO Layover</div>
+      <div class="leg-pill" id="lp2" onclick="selectLeg(2)">🌏 SFO → TPE</div>
+      <div class="leg-pill" id="lp3" onclick="selectLeg(3)">🛬 Taipei</div>
+    </div>
+    <div class="leg-banner">
+      <div class="leg-banner-left" id="legTitle">DFW → SFO · UA 1718</div>
+      <div class="leg-banner-right" id="legMeta">3h 58m · Gate E5</div>
+    </div>
+    <div class="clocks">
+      <div class="clock-card" id="clk-dallas">
+        <div class="clock-city">Dallas<br>CDT</div>
+        <div class="clock-time" id="ct-dallas">7:43 PM</div>
+        <div class="clock-date" id="cd-dallas">Apr 1</div>
+      </div>
+      <div class="clock-card active-zone" id="clk-local">
+        <div class="clock-city" id="cc-local">Current<br>Zone</div>
+        <div class="clock-time" id="ct-local">7:43 PM</div>
+        <div class="clock-date" id="cd-local">Apr 1</div>
+      </div>
+      <div class="clock-card" id="clk-taipei">
+        <div class="clock-city">Taipei<br>CST</div>
+        <div class="clock-time" id="ct-taipei">8:43 AM</div>
+        <div class="clock-date" id="cd-taipei">Apr 2</div>
+      </div>
+    </div>
+    <div class="globe-wrap">
+      <canvas id="globeCanvas" height="360"></canvas>
+    </div>
+    <div class="scrubber-wrap">
+      <div class="scrubber-row">
+        <span>DFW 7:43 PM</span>
+        <span class="scrubber-center" id="scrub-mid">0% complete</span>
+        <span>TPE 4:05 AM</span>
+      </div>
+      <input type="range" class="scrubber" id="scrubber" min="0" max="1000" value="0" oninput="onScrub(this.value)">
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn" onclick="restartSim()" title="Restart">↺</button>
+      <button class="ctrl-btn play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+      <button class="ctrl-btn speed-btn" id="speedBtn" onclick="cycleSpeed()">1.25×</button>
+    </div>
+    <div class="event-feed">
+      <div class="event-feed-title">Flight log</div>
+      <div id="eventList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ASIA TRIP ══ -->
+<div id="tripit" class="tab-content">
+<style>
+.it-hero{padding:36px 20px 20px;position:relative;overflow:hidden;}
+.it-hero::before{content:'';position:absolute;top:-40px;right:-40px;width:220px;height:220px;background:radial-gradient(circle,rgba(6,182,212,0.07) 0%,transparent 70%);pointer-events:none;}
+.it-hero h2{font-size:30px;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px;}
+.it-hero h2 span{color:var(--taipei);}
+.it-hero p{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+.city-pills{display:flex;gap:8px;padding:0 20px 20px;overflow-x:auto;scrollbar-width:none;}
+.city-pills::-webkit-scrollbar{display:none;}
+.city-pill{flex-shrink:0;cursor:pointer;border-radius:16px;border:1px solid var(--border2);background:var(--surface);padding:14px 18px;min-width:110px;transition:all 0.2s;}
+.city-pill.active{border-color:var(--taipei-border);background:var(--taipei-bg);}
+.city-pill:active{transform:scale(0.97);}
+.cp-flag{font-size:22px;margin-bottom:6px;}
+.cp-name{font-size:14px;font-weight:700;color:var(--text);}
+.cp-dates{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:0.04em;}
+.cp-count{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;margin-top:4px;color:var(--dim);}
+.city-pill.active .cp-count{color:var(--taipei);}
+.city-section{display:none;padding:0 16px 40px;}
+.city-section.active{display:block;}
+.city-meta{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--dim);margin-bottom:12px;padding-left:2px;}
+.day-row{margin-bottom:7px;border-radius:14px;border:1px solid var(--border);background:var(--surface);overflow:hidden;transition:border-color 0.18s,background 0.18s;}
+.day-row.expanded{border-color:var(--border2);background:var(--surface2);}
+.day-hdr{display:flex;align-items:center;gap:9px;padding:13px 14px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;}
+.day-hdr:active{opacity:0.75;}
+.day-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.day-date{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);min-width:40px;flex-shrink:0;}
+.day-hl{font-size:13px;font-weight:700;flex:1;color:var(--text);}
+.day-badge{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;padding:2px 7px;border-radius:100px;letter-spacing:0.05em;flex-shrink:0;}
+.day-chev{font-size:13px;color:var(--muted);flex-shrink:0;transition:transform 0.22s;margin-left:2px;}
+.day-row.expanded .day-chev{transform:rotate(180deg);color:var(--taipei);}
+.day-body{display:none;padding:4px 12px 12px;}
+.day-row.expanded .day-body{display:block;}
+.tstack{display:flex;flex-direction:column;gap:6px;}
+.tb{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border-radius:10px;background:var(--bg);border:1px solid var(--border);}
+.tb-t{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);min-width:68px;flex-shrink:0;padding-top:1px;letter-spacing:0.03em;}
+.tb-r{flex:1;}
+.tb-a{font-size:12px;font-weight:600;color:var(--text);line-height:1.3;}
+.tb-n{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;}
+.dt-arrive .day-dot{background:var(--taipei);}
+.dt-arrive .day-badge{background:var(--taipei-bg);color:var(--taipei);border:1px solid var(--taipei-border);}
+.dt-trip .day-dot{background:var(--layover);}
+.dt-trip .day-badge{background:var(--layover-bg);color:var(--layover);border:1px solid var(--layover-border);}
+.dt-free .day-dot{background:var(--awake);}
+.dt-free .day-badge{background:var(--awake-bg);color:var(--awake);border:1px solid var(--awake-border);}
+.dt-flight .day-dot{background:var(--flight);}
+.dt-flight .day-badge{background:var(--flight-bg);color:var(--flight);border:1px solid var(--flight-border);}
+.dt-beauty .day-dot{background:#ec4899;}
+.dt-beauty .day-badge{background:rgba(236,72,153,0.12);color:#ec4899;border:1px solid rgba(236,72,153,0.3);}
+.it-foot{padding:20px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--dim);letter-spacing:0.07em;}
+</style>
+
+<div class="it-hero">
+  <div class="tag">Apr 3 – Apr 18 · 2026</div>
+  <h2>Asia<br><span>Itinerary</span></h2>
+  <p>Tracy · Pri · Meg · Ash · Dylan · Wes · Andrew</p>
+</div>
+
+<div class="city-pills">
+  <div class="city-pill active" onclick="selectCity('taipei',this)">
+    <div class="cp-flag">🇹🇼</div>
+    <div class="cp-name">Taipei</div>
+    <div class="cp-dates">APR 3 – 7</div>
+    <div class="cp-count">5 days</div>
+  </div>
+  <div class="city-pill" onclick="selectCity('hanoi',this)">
+    <div class="cp-flag">🇻🇳</div>
+    <div class="cp-name">Hanoi</div>
+    <div class="cp-dates">APR 7 – 13</div>
+    <div class="cp-count">6 days</div>
+  </div>
+  <div class="city-pill" onclick="selectCity('saigon',this)">
+    <div class="cp-flag">🇻🇳</div>
+    <div class="cp-name">Saigon</div>
+    <div class="cp-dates">APR 13 – 18</div>
+    <div class="cp-count">5 days</div>
+  </div>
+</div>
+
+<!-- TAIPEI -->
+<div id="cs-taipei" class="city-section active">
+  <div class="city-meta">Apr 3–7 · Taiyuan Rd, Datong District · tap any day ↓</div>
+
+  <div class="day-row dt-arrive" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 3</div>
+      <div class="day-hl">Arrive Taipei</div>
+      <div class="day-badge">ARRIVE</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">4:05 AM</div><div class="tb-r"><div class="tb-a">Land TPE</div></div></div>
+        <div class="tb"><div class="tb-t">6:00 AM</div><div class="tb-r"><div class="tb-a">Transit into city</div></div></div>
+        <div class="tb"><div class="tb-t">7:00 AM</div><div class="tb-r"><div class="tb-a">Arrive in Taipei</div></div></div>
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Breakfast + Spa</div></div></div>
+        <div class="tb"><div class="tb-t">10:00 AM</div><div class="tb-r"><div class="tb-a">Village Spa</div><div class="tb-n">WM</div></div></div>
+        <div class="tb"><div class="tb-t">11:00 AM</div><div class="tb-r"><div class="tb-a">DTF Lunch</div><div class="tb-n">Din Tai Fung</div></div></div>
+        <div class="tb"><div class="tb-t">1:00 PM</div><div class="tb-r"><div class="tb-a">Songshan Temple</div></div></div>
+        <div class="tb"><div class="tb-t">3:00 PM</div><div class="tb-r"><div class="tb-a">Taipei 101</div></div></div>
+        <div class="tb"><div class="tb-t">6:00 PM</div><div class="tb-r"><div class="tb-a">Elephant Mtn Hike</div><div class="tb-n">Sunset views</div></div></div>
+        <div class="tb"><div class="tb-t">9:00 PM</div><div class="tb-r"><div class="tb-a">Raohe Night Market</div></div></div>
+        <div class="tb"><div class="tb-t">11:30 PM</div><div class="tb-r"><div class="tb-a">Hanko60</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-trip" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 4</div>
+      <div class="day-hl">Day Trip · Jiufen 🏮</div>
+      <div class="day-badge">DAY TRIP</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Breakfast</div></div></div>
+        <div class="tb"><div class="tb-t">8:52 AM</div><div class="tb-r"><div class="tb-a">Train Taipei → Ruifang</div><div class="tb-n">Arrives Toucheng 10:04am</div></div></div>
+        <div class="tb"><div class="tb-t">3:00 PM</div><div class="tb-r"><div class="tb-a">Train to Ruifang → Bus to Jiufen</div></div></div>
+        <div class="tb"><div class="tb-t">5:00 PM</div><div class="tb-r"><div class="tb-a">Sunset Teapot Mtn Hike</div></div></div>
+        <div class="tb"><div class="tb-t">8:00 PM</div><div class="tb-r"><div class="tb-a">Jiufen Old Street + Keelung Night Market</div><div class="tb-n">Last train back to Taipei 11pm</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-free" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 5</div>
+      <div class="day-hl">Taipei · Mochi + Kavalan</div>
+      <div class="day-badge">EXPLORE</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">7:00 AM</div><div class="tb-r"><div class="tb-a">Breakfast</div></div></div>
+        <div class="tb"><div class="tb-t">12:30 PM</div><div class="tb-r"><div class="tb-a">Lunch · Weng Yao Chicken</div></div></div>
+        <div class="tb"><div class="tb-t">2:00 PM</div><div class="tb-r"><div class="tb-a">Mochi Class</div></div></div>
+        <div class="tb"><div class="tb-t">3:00 PM</div><div class="tb-r"><div class="tb-a">Zhang Mei Ama's Animal Farm</div><div class="tb-n">Closes 5pm</div></div></div>
+        <div class="tb"><div class="tb-t">5:00 PM</div><div class="tb-r"><div class="tb-a">Kavalan Distillery</div></div></div>
+        <div class="tb"><div class="tb-t">6:00 PM</div><div class="tb-r"><div class="tb-a">Biking / Park</div></div></div>
+        <div class="tb"><div class="tb-t">7:30 PM</div><div class="tb-r"><div class="tb-a">Red Lantern</div></div></div>
+        <div class="tb"><div class="tb-t">9:00 PM</div><div class="tb-r"><div class="tb-a">Luodong Night Market</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-free" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 6</div>
+      <div class="day-hl">Taipei · Free Day</div>
+      <div class="day-badge">FREE</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Shop + Eat</div></div></div>
+        <div class="tb"><div class="tb-t">9:30 PM</div><div class="tb-r"><div class="tb-a">Geography Bar</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-flight" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 7</div>
+      <div class="day-hl">Taipei → Hanoi ✈</div>
+      <div class="day-badge">FLIGHT</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">7:30 AM</div><div class="tb-r"><div class="tb-a">Fly to Hanoi</div></div></div>
+        <div class="tb"><div class="tb-t">9:30 AM</div><div class="tb-r"><div class="tb-a">Land Hanoi</div></div></div>
+        <div class="tb"><div class="tb-t">11:00 AM</div><div class="tb-r"><div class="tb-a">Drop off luggage · coffee · lunch</div></div></div>
+        <div class="tb"><div class="tb-t">1:00 PM</div><div class="tb-r"><div class="tb-a">Nails + Spa</div></div></div>
+        <div class="tb"><div class="tb-t">4:00 PM</div><div class="tb-r"><div class="tb-a">Train Street</div></div></div>
+        <div class="tb"><div class="tb-t">7:00 PM</div><div class="tb-r"><div class="tb-a">Hoan Kiem Lake Walk</div><div class="tb-n">Ngoc Son Temple at sunset</div></div></div>
+        <div class="tb"><div class="tb-t">10:00 PM</div><div class="tb-r"><div class="tb-a">Sleeper Train</div><div class="tb-n">→ Lao Cai (Sapa)</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HANOI -->
+<div id="cs-hanoi" class="city-section">
+  <div class="city-meta">Apr 7–13 · 10 P. Nhà Hỏa, Hoàn Kiếm · tap any day ↓</div>
+
+  <div class="day-row dt-beauty" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 8</div>
+      <div class="day-hl">Hanoi · Beauty Treatment Day</div>
+      <div class="day-badge">BEAUTY</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Breakfast</div></div></div>
+        <div class="tb"><div class="tb-t">11:00 AM</div><div class="tb-r"><div class="tb-a">Women's Museum</div></div></div>
+        <div class="tb"><div class="tb-t">1:00 PM</div><div class="tb-r"><div class="tb-a">Lunch + Shopping</div></div></div>
+        <div class="tb"><div class="tb-t">7:00 PM</div><div class="tb-r"><div class="tb-a">Dinner</div></div></div>
+        <div class="tb"><div class="tb-t">8:00 PM</div><div class="tb-r"><div class="tb-a">Go home · shower · pack</div></div></div>
+        <div class="tb"><div class="tb-t">10:00 PM</div><div class="tb-r"><div class="tb-a">Sleeper Train</div><div class="tb-n">→ Lao Cai (Sapa)</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-trip" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 9</div>
+      <div class="day-hl">Day Trip · Sa Pa 🏔</div>
+      <div class="day-badge">DAY TRIP</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">6:00 AM</div><div class="tb-r"><div class="tb-a">Arrive Lao Cai</div></div></div>
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Arrive Sa Pa</div><div class="tb-n">Breakfast + coffee</div></div></div>
+        <div class="tb"><div class="tb-t">8:55 AM</div><div class="tb-r"><div class="tb-a">Rice Terrace Trek</div><div class="tb-n">$27pp · lunch with local family included</div></div></div>
+        <div class="tb"><div class="tb-t">3:30 PM</div><div class="tb-r"><div class="tb-a">Return from tour</div></div></div>
+        <div class="tb"><div class="tb-t">9:30 PM</div><div class="tb-r"><div class="tb-a">Sleeper Train</div><div class="tb-n">→ Hanoi</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-free" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 10</div>
+      <div class="day-hl">Hanoi · Recovery Day</div>
+      <div class="day-badge">CHILL</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">6:00 AM</div><div class="tb-r"><div class="tb-a">Arrive back Hanoi</div></div></div>
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Breakfast</div></div></div>
+        <div class="tb"><div class="tb-t">11:00 AM</div><div class="tb-r"><div class="tb-a">Gym / Workout class</div></div></div>
+        <div class="tb"><div class="tb-t">1:00 PM</div><div class="tb-r"><div class="tb-a">Hair spa + wash</div></div></div>
+        <div class="tb"><div class="tb-t">6:00 PM</div><div class="tb-r"><div class="tb-a">Hanoi Night Market</div></div></div>
+        <div class="tb"><div class="tb-t">9:00 PM</div><div class="tb-r"><div class="tb-a">Attic Cocktail & Wine Lab</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-free" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 11</div>
+      <div class="day-hl">Hanoi · Old Quarter</div>
+      <div class="day-badge">EXPLORE</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Eat</div></div></div>
+        <div class="tb"><div class="tb-t">9:00 AM</div><div class="tb-r"><div class="tb-a">More shopping</div></div></div>
+        <div class="tb"><div class="tb-t">10:00 AM</div><div class="tb-r"><div class="tb-a">Old Quarter</div></div></div>
+        <div class="tb"><div class="tb-t">11:00 AM</div><div class="tb-r"><div class="tb-a">French Quarter</div><div class="tb-n">Opera House</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-trip" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 12</div>
+      <div class="day-hl">Day Trip · Ninh Binh 🚣</div>
+      <div class="day-badge">DAY TRIP</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">7:00 AM</div><div class="tb-r"><div class="tb-a">Pick up @ Hanoi Opera House</div><div class="tb-n">PR</div></div></div>
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Bai Dinh Temple</div></div></div>
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Trang An Boat Tour</div></div></div>
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Mua Cave</div><div class="tb-n">$52pp · lunch included</div></div></div>
+        <div class="tb"><div class="tb-t">7:30 PM</div><div class="tb-r"><div class="tb-a">Bus → Hanoi</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-flight" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 13</div>
+      <div class="day-hl">Hanoi → Saigon ✈</div>
+      <div class="day-badge">FLIGHT</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Flight to Saigon</div></div></div>
+        <div class="tb"><div class="tb-t">10:10 AM</div><div class="tb-r"><div class="tb-a">Arrive SGN</div></div></div>
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Custom day in Saigon</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAIGON -->
+<div id="cs-saigon" class="city-section">
+  <div class="city-meta">Apr 13–18 · 159 Võ Nguyên Giáp, Thủ Đức · tap any day ↓</div>
+
+  <div class="day-row dt-free" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 14</div>
+      <div class="day-hl">Saigon · Arrive + Explore</div>
+      <div class="day-badge">EXPLORE</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Breakfast</div></div></div>
+        <div class="tb"><div class="tb-t">10:10 AM</div><div class="tb-r"><div class="tb-a">Arrive Saigon SGN</div></div></div>
+        <div class="tb"><div class="tb-t">12:00 PM</div><div class="tb-r"><div class="tb-a">Lunch</div></div></div>
+        <div class="tb"><div class="tb-t">1:00 PM</div><div class="tb-r"><div class="tb-a">Ben Thanh Market</div></div></div>
+        <div class="tb"><div class="tb-t">3:00 PM</div><div class="tb-r"><div class="tb-a">Book Street</div><div class="tb-n">Central Post Office</div></div></div>
+        <div class="tb"><div class="tb-t">8:00 PM</div><div class="tb-r"><div class="tb-a">Pizza 4P</div><div class="tb-n">Ben Thanh · reserve ahead!</div></div></div>
+        <div class="tb"><div class="tb-t">9:00 PM</div><div class="tb-r"><div class="tb-a">Bui Vien Walking Street</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-beauty" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 15</div>
+      <div class="day-hl">Saigon · Beauty Day 💅</div>
+      <div class="day-badge">BEAUTY</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">8:00 AM</div><div class="tb-r"><div class="tb-a">Atelier Matcha</div></div></div>
+        <div class="tb"><div class="tb-t">9:00 AM</div><div class="tb-r"><div class="tb-a">Cafe Apartment</div></div></div>
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Workout class</div><div class="tb-n">Lagree Vietnam · $35</div></div></div>
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Nails + Hair</div><div class="tb-n">Lisa Nail & Spa</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-free" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 16</div>
+      <div class="day-hl">Saigon · Shopping + Meg ✈</div>
+      <div class="day-badge">FREE</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Shopping</div></div></div>
+        <div class="tb"><div class="tb-t">2:00 PM</div><div class="tb-r"><div class="tb-a">Lunch</div></div></div>
+        <div class="tb"><div class="tb-t">5:30 PM</div><div class="tb-r"><div class="tb-a">Meg departs ✈</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-free" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 17</div>
+      <div class="day-hl">Saigon · Last Full Day</div>
+      <div class="day-badge">FREE</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">DAY</div><div class="tb-r"><div class="tb-a">Free day + shopping</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="day-row dt-flight" onclick="toggleDay(this)">
+    <div class="day-hdr">
+      <div class="day-dot"></div>
+      <div class="day-date">APR 18</div>
+      <div class="day-hl">Departure ✈ Home</div>
+      <div class="day-badge">FLIGHT</div>
+      <div class="day-chev">▼</div>
+    </div>
+    <div class="day-body">
+      <div class="tstack">
+        <div class="tb"><div class="tb-t">12:30 PM</div><div class="tb-r"><div class="tb-a">Andrew & Wes depart</div><div class="tb-n">SGN → home</div></div></div>
+        <div class="tb"><div class="tb-t">12:30 PM</div><div class="tb-r"><div class="tb-a">Tracy departs</div><div class="tb-n">SGN → home</div></div></div>
+        <div class="tb"><div class="tb-t">11:45 PM</div><div class="tb-r"><div class="tb-a">Ash · Pri · Dylan depart</div><div class="tb-n">SGN → ICN → DFW</div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="it-foot">Tracy · Pri · Meg · Ash · Dylan · Wes · Andrew · Asia 2026 🌏</div>
+
+<script>
+function selectCity(id,el){
+  document.querySelectorAll('.city-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.city-section').forEach(s=>s.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('cs-'+id).classList.add('active');
+}
+function toggleDay(row){row.classList.toggle('expanded');}
+</script>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+// ── TAB SWITCHING ──
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='sim') initSim();
+}
+
+// ── STARFIELD ──
+const sfc=document.getElementById('starfield'), sfx=sfc.getContext('2d');
+let stars=[];
+function initStars(){
+  sfc.width=window.innerWidth; sfc.height=window.innerHeight;
+  stars=Array.from({length:200},()=>({x:Math.random()*sfc.width,y:Math.random()*sfc.height,r:Math.random()*1.3+0.2,phase:Math.random()*Math.PI*2,speed:Math.random()*0.4+0.05}));
+}
+let sfTick=0;
+function drawStars(){
+  sfTick+=0.008; sfx.clearRect(0,0,sfc.width,sfc.height);
+  stars.forEach(s=>{
+    const a=0.08+Math.abs(Math.sin(s.phase+sfTick*s.speed))*0.65;
+    sfx.beginPath(); sfx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sfx.fillStyle=`rgba(180,210,255,${a})`; sfx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+initStars(); drawStars();
+window.addEventListener('resize',initStars);
+
+// ── FLIGHT DATA ──
+const TOTAL_MINS=1162, BASE_CDT=19*60+43;
+
+// Route waypoints [lat, lon] — key anchors only, great-circle slerp fills between
+// All longitudes kept continuous (no ±180 wrap) so lerp never pole-loops
+const ROUTE=[
+  [32.9,-97.0],   // DFW
+  [37.6,-122.4],  // SFO (end of leg 1)
+  [37.6,-122.4],  // SFO (start of leg 2)
+  [42.0,-140.0],  // Pacific entry
+  [50.0,-160.0],  // North Pacific arc
+  [55.0,-175.0],  // near date line — stay in negative lon space
+  [55.0,-190.0],  // cross date line expressed as -190 (= 170E) to keep continuity
+  [50.0,-205.0],  // = 155E
+  [42.0,-215.0],  // = 145E, descending toward Japan
+  [33.0,-222.0],  // = 138E, Japan coast
+  [25.1,-238.4],  // TPE = 121.6E expressed as -238.4 for continuous lon
+];
+const ROUTE_P=[0, 0.205, 0.29, 0.36, 0.44, 0.52, 0.60, 0.70, 0.80, 0.90, 1.0];
+
+// Normalize lon to -180..180 for projection (D3 needs standard range)
+function normLon(lon){ while(lon>180)lon-=360; while(lon<-180)lon+=360; return lon; }
+
+const flightEvents=[
+  {p:0,    pEnd:null,  title:'Departs DFW',         time:'7:43 PM CDT',   sub:'Gate E5 · stay awake',                    color:'#22c55e'},
+  {p:0.205,pEnd:null,  title:'Lands SFO',            time:'7:41 PM PDT',   sub:'−2 hrs from Dallas · layover begins',     color:'#f59e0b'},
+  {p:0.22, pEnd:null,  title:'Layover · SFO',        time:'1hr 39min',     sub:'Terminal 3, Concourse F · eat & hydrate', color:'#f59e0b'},
+  {p:0.29, pEnd:null,  title:'Departs SFO',          time:'11:20 PM PDT',  sub:'Gate INTL · the big one',                 color:'#22c55e'},
+  {p:0.37, pEnd:0.78,  title:'😴 Sleep window',       time:'12:20 AM PDT',  sub:'6–7 hrs · eye mask on',                   color:'#3b82f6'},
+  {p:0.58, pEnd:null,  title:'🌐 Date line',          time:'Apr 1 → Apr 2', sub:'Date jumps forward one full day',         color:'#a855f7', secondary:true},
+  {p:0.78, pEnd:null,  title:'Wake up',              time:'~7:30 AM PDT',  sub:'3.5 hrs to landing · eat breakfast',      color:'#a855f7'},
+  {p:1.0,  pEnd:null,  title:'Lands Taipei',         time:'4:05 AM CST',   sub:'Get outside! Sunlight = jet lag reset',   color:'#06b6d4'},
+];
+
+const legData=[
+  {title:'DFW → SFO · UA 1718',  meta:'3h 58m · Gate E5',              pStart:0},
+  {title:'SFO Layover',           meta:'1h 39m · Terminal 3 Concourse F',pStart:0.205},
+  {title:'SFO → TPE · UA 853',   meta:'13h 45m · Gate INTL',            pStart:0.29},
+  {title:'Arrived · Taipei TPE', meta:'4:05 AM CST · Apr 3',            pStart:1.0},
+];
+
+// ── STATE ──
+let simProgress=0, playing=false, speed=1.25, lastTime=null, simInited=false;
+let lastDisplayedMin=-1;
+let worldData=null;
+
+// Floating tag state
+let activeTag = null;
+let secondaryTag = null;
+let lastTagIdx = -1;
+let lastSecIdx = -1;
+
+const tagColors = [
+  {color:'#22c55e', bg:'rgba(34,197,94,0.15)',  border:'rgba(34,197,94,0.5)'},
+  {color:'#f59e0b', bg:'rgba(245,158,11,0.15)', border:'rgba(245,158,11,0.5)'},
+  {color:'#f59e0b', bg:'rgba(245,158,11,0.15)', border:'rgba(245,158,11,0.5)'},
+  {color:'#22c55e', bg:'rgba(34,197,94,0.15)',  border:'rgba(34,197,94,0.5)'},
+  {color:'#3b82f6', bg:'rgba(59,130,246,0.15)', border:'rgba(59,130,246,0.5)'},
+  {color:'#a855f7', bg:'rgba(168,85,247,0.15)', border:'rgba(168,85,247,0.5)'},
+  {color:'#a855f7', bg:'rgba(168,85,247,0.15)', border:'rgba(168,85,247,0.5)'},
+  {color:'#06b6d4', bg:'rgba(6,182,212,0.15)',  border:'rgba(6,182,212,0.5)'},
+];
+
+function checkTagTrigger(p) {
+  let cur = -1;
+  flightEvents.forEach((e,i) => { if(p >= e.p) cur = i; });
+
+  const inSustained = cur >= 0 && flightEvents[cur].pEnd !== null && p < flightEvents[cur].pEnd;
+
+  if(cur !== lastTagIdx && cur >= 0) {
+    const e = flightEvents[cur];
+    const c = tagColors[cur] || tagColors[0];
+    if(e.secondary) {
+      // Secondary — goes to secondaryTag slot, doesn't touch activeTag
+      if(cur !== lastSecIdx) {
+        lastSecIdx = cur;
+        secondaryTag = { title: e.title, time: e.time, opacity: 1.0, sustained: false, ...c };
+      }
+    } else {
+      lastTagIdx = cur;
+      activeTag = { title: e.title, time: e.time, opacity: 1.0, sustained: !!e.pEnd, ...c };
+    }
+  }
+
+  // Tick activeTag
+  if(activeTag) {
+    if(activeTag.sustained && inSustained) {
+      activeTag.opacity = 0.85 + Math.sin(Date.now() / 600) * 0.15;
+    } else if(activeTag.sustained && !inSustained) {
+      activeTag.sustained = false;
+      activeTag.opacity = Math.max(0, activeTag.opacity - 0.004);
+    } else {
+      // Slower fade — divide by 2 more to linger longer
+      activeTag.opacity = Math.max(0, activeTag.opacity - (playing ? 0.002 / Math.max(speed,1) : 0.0005));
+    }
+  }
+
+  // Tick secondaryTag — fades a bit slower too
+  if(secondaryTag) {
+    secondaryTag.opacity = Math.max(0, secondaryTag.opacity - (playing ? 0.0025 / Math.max(speed,1) : 0.0005));
+  }
+}
+
+// ── ROUTE HELPERS ──
+function lerpRoute(p){
+  let i=0;
+  for(let k=0;k<ROUTE_P.length-1;k++){
+    if(p>=ROUTE_P[k]&&p<=ROUTE_P[k+1]){i=k;break;}
+  }
+  if(p>=1) i=ROUTE_P.length-2;
+  const frac=ROUTE_P[i+1]===ROUTE_P[i]?0:(p-ROUTE_P[i])/(ROUTE_P[i+1]-ROUTE_P[i]);
+  const a=ROUTE[i],b=ROUTE[Math.min(i+1,ROUTE.length-1)];
+  const rawLat=a[0]+(b[0]-a[0])*frac;
+  const rawLon=a[1]+(b[1]-a[1])*frac;
+  return [rawLat, normLon(rawLon)];
+}
+
+function getBearing(p){
+  // Calculate heading angle in canvas space using small lookahead
+  const d=0.008;
+  const [la1,lo1]=lerpRoute(Math.max(0,p-d));
+  const [la2,lo2]=lerpRoute(Math.min(1,p+d));
+  const dLon=(lo2-lo1)*Math.PI/180;
+  const r1=la1*Math.PI/180, r2=la2*Math.PI/180;
+  const y=Math.sin(dLon)*Math.cos(r2);
+  const x=Math.cos(r1)*Math.sin(r2)-Math.sin(r1)*Math.cos(r2)*Math.cos(dLon);
+  return Math.atan2(y,x); // radians: 0=east, π/2=north in geo
+}
+
+// ── TAG DRAWING HELPER ──
+function drawTag(ctx, tx, ty, t, planeCx, planeCy, small=false) {
+  const titleSize = small ? 10 : 11;
+  const timeSize  = small ? 8  : 9;
+  const lineGap   = small ? 3  : 4;
+  const pad       = small ? 8  : 11;
+  const rh        = small ? 32 : 38;
+
+  ctx.font = `600 ${titleSize}px Syne, sans-serif`;
+  const tw1 = ctx.measureText(t.title).width;
+  ctx.font = `500 ${timeSize}px JetBrains Mono, monospace`;
+  const tw2 = t.time ? ctx.measureText(t.time).width : 0;
+  const rw = Math.max(tw1, tw2) + pad*2;
+
+  ctx.save();
+  ctx.globalAlpha = t.opacity;
+
+  // Pill
+  ctx.beginPath();
+  ctx.roundRect(tx - rw/2, ty - rh/2, rw, rh, 100);
+  ctx.fillStyle = t.bg; ctx.fill();
+  ctx.strokeStyle = t.border; ctx.lineWidth = 1; ctx.stroke();
+
+  // Stem from bottom tag to plane
+  if(!small) {
+    ctx.beginPath();
+    ctx.moveTo(tx, ty + rh/2);
+    ctx.lineTo(planeCx, planeCy - 16);
+    ctx.strokeStyle = t.border; ctx.lineWidth = 1;
+    ctx.setLineDash([2,3]); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // Title line
+  const titleY = t.time ? ty - lineGap - 1 : ty;
+  ctx.fillStyle = t.color;
+  ctx.font = `600 ${titleSize}px Syne, sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(t.title, tx, titleY);
+
+  // Timestamp line
+  if(t.time) {
+    ctx.fillStyle = t.color;
+    ctx.globalAlpha = t.opacity * 0.7;
+    ctx.font = `500 ${timeSize}px JetBrains Mono, monospace`;
+    ctx.fillText(t.time, tx, titleY + titleSize + lineGap);
+  }
+
+  ctx.restore();
+}
+
+// ── GLOBE DRAWING ──
+const gc=document.getElementById('globeCanvas'), gctx=gc.getContext('2d');
+
+function drawGlobe(p){
+  const W=gc.width, H=gc.height;
+  gctx.clearRect(0,0,W,H);
+  const [planeLat,planeLon]=lerpRoute(p);
+
+  // Globe centered at canvas center, zoomed in so edges bleed off screen
+  const globeScale=Math.min(W,H)*0.88;
+  const proj=d3.geoOrthographic()
+    .scale(globeScale)
+    .translate([W/2, H/2])
+    .rotate([-planeLon,-planeLat,0])
+    .clipAngle(90);
+  const path=d3.geoPath(proj,gctx);
+
+  // Ocean
+  gctx.beginPath(); path({type:'Sphere'});
+  gctx.fillStyle='#070d1e'; gctx.fill();
+
+  // Atmosphere rim
+  const atm=gctx.createRadialGradient(W/2,H/2,globeScale*0.95,W/2,H/2,globeScale+14);
+  atm.addColorStop(0,'rgba(6,182,212,0)');
+  atm.addColorStop(0.6,'rgba(6,182,212,0.07)');
+  atm.addColorStop(1,'rgba(6,182,212,0.22)');
+  gctx.beginPath(); gctx.arc(W/2,H/2,globeScale+14,0,Math.PI*2);
+  gctx.fillStyle=atm; gctx.fill();
+
+  // Graticule
+  gctx.beginPath(); path(d3.geoGraticule()());
+  gctx.strokeStyle='rgba(60,100,160,0.15)'; gctx.lineWidth=0.5; gctx.stroke();
+
+  // Land
+  if(worldData){
+    gctx.beginPath();
+    path(topojson.feature(worldData,worldData.objects.land));
+    gctx.fillStyle='#152340';
+    gctx.strokeStyle='rgba(80,150,220,0.18)';
+    gctx.lineWidth=0.5; gctx.fill(); gctx.stroke();
+  }
+
+  // Globe border
+  gctx.beginPath(); path({type:'Sphere'});
+  gctx.strokeStyle='rgba(6,182,212,0.3)'; gctx.lineWidth=1.5; gctx.stroke();
+
+  // Remaining path (dim dashed)
+  const remCoords=[];
+  for(let k=0;k<=80;k++){
+    const pp=p+(k/80)*(1-p);
+    const [la,lo]=lerpRoute(pp); remCoords.push([lo,la]);
+  }
+  gctx.beginPath(); path({type:'LineString',coordinates:remCoords});
+  gctx.strokeStyle='rgba(255,255,255,0.09)'; gctx.lineWidth=1;
+  gctx.setLineDash([3,7]); gctx.stroke(); gctx.setLineDash([]);
+
+  // Completed path (glowing cyan)
+  const doneCoords=[];
+  for(let k=0;k<=60;k++){
+    const pp=(k/60)*p;
+    const [la,lo]=lerpRoute(pp); doneCoords.push([lo,la]);
+  }
+  gctx.beginPath(); path({type:'LineString',coordinates:doneCoords});
+  gctx.strokeStyle='rgba(6,182,212,0.75)'; gctx.lineWidth=2.5; gctx.stroke();
+
+  // Airport markers
+  [{lat:32.9,lon:-97.0,label:'DFW',color:'#22c55e'},{lat:37.6,lon:-122.4,label:'SFO',color:'#f59e0b'},{lat:25.1,lon:121.6,label:'TPE',color:'#06b6d4'}].forEach(ap=>{
+    const dist=d3.geoDistance([ap.lon,ap.lat],[planeLon,planeLat]);
+    if(dist>Math.PI/2) return;
+    const pt=proj([ap.lon,ap.lat]); if(!pt) return;
+    gctx.beginPath(); gctx.arc(pt[0],pt[1],5,0,Math.PI*2);
+    gctx.fillStyle=ap.color; gctx.fill();
+    gctx.fillStyle='rgba(240,240,250,0.9)';
+    gctx.font='bold 9px Syne, sans-serif'; gctx.textAlign='center';
+    gctx.fillText(ap.label,pt[0],pt[1]-8);
+  });
+
+  // ── CRITICAL: reset canvas clip/transform state left by D3's path renderer ──
+  gctx.restore(); gctx.save(); gctx.setTransform(1,0,0,1,0,0);
+
+  // Plane always drawn at canvas center (globe rotates to keep plane centered)
+  const cx=W/2, cy=H/2;
+  const bearing=getBearing(p);
+
+  // Glow halo
+  const glow=gctx.createRadialGradient(cx,cy,0,cx,cy,28);
+  glow.addColorStop(0,'rgba(6,182,212,0.55)');
+  glow.addColorStop(1,'rgba(6,182,212,0)');
+  gctx.beginPath(); gctx.arc(cx,cy,28,0,Math.PI*2);
+  gctx.fillStyle=glow; gctx.fill();
+
+  // Plane emoji — rotated to face direction of travel
+  gctx.save();
+  gctx.translate(cx,cy);
+  gctx.rotate(bearing - Math.PI/2);
+  gctx.font='28px serif';
+  gctx.textAlign='center'; gctx.textBaseline='middle';
+  gctx.fillStyle='white';
+  gctx.fillText('✈',0,0);
+  gctx.restore();
+
+  // Floating checkpoint tag above plane
+  if(activeTag && activeTag.opacity > 0) {
+    const t = activeTag;
+    const tx = cx, ty = cy - 62;
+    drawTag(gctx, tx, ty, t, cx, cy);
+  }
+
+  // Secondary tag stacked above main tag
+  if(secondaryTag && secondaryTag.opacity > 0) {
+    const offset = (activeTag && activeTag.opacity > 0) ? 108 : 62;
+    drawTag(gctx, cx, cy - offset, secondaryTag, cx, cy, true);
+  }
+}
+
+// ── TIME FORMATTING (whole-minute only) ──
+function fmtMin(cdtMin){
+  const s=Math.floor(cdtMin);
+  const day=Math.floor(s/(24*60));
+  const mod=((s%(24*60))+(24*60))%(24*60);
+  const h=Math.floor(mod/60), m=mod%60;
+  const ap=h>=12?'PM':'AM', h12=h%12===0?12:h%12;
+  const mm=String(m).padStart(2,'0');
+  return {time:`${h12}:${mm} ${ap}`,date:['Apr 1','Apr 2','Apr 3','Apr 4'][Math.max(0,Math.min(3,day))]};
+}
+
+function getZone(p){
+  if(p<0.205) return {off:0, name:'CDT · UTC−5'};
+  if(p<0.63)  return {off:-2,name:'PDT · UTC−7'};
+  return              {off:13,name:'CST · UTC+8'};
+}
+
+// ── UPDATE UI ──
+function updateUI(p){
+  const elMin=p*TOTAL_MINS;
+  const cdtMin=BASE_CDT+elMin;
+  const snapped=Math.floor(cdtMin);
+
+  // Only redraw clocks when minute ticks
+  if(snapped!==lastDisplayedMin){
+    lastDisplayedMin=snapped;
+    const z=getZone(p);
+    const dal=fmtMin(snapped);
+    const loc=fmtMin(snapped+z.off*60);
+    const tpe=fmtMin(snapped+13*60);
+    document.getElementById('ct-dallas').textContent=dal.time;
+    document.getElementById('cd-dallas').textContent=dal.date;
+    document.getElementById('ct-local').textContent=loc.time;
+    document.getElementById('cd-local').textContent=loc.date;
+    document.getElementById('cc-local').textContent=z.name;
+    document.getElementById('ct-taipei').textContent=tpe.time;
+    document.getElementById('cd-taipei').textContent=tpe.date;
+    ['clk-dallas','clk-local','clk-taipei'].forEach(id=>document.getElementById(id).classList.remove('active-zone'));
+    if(p<0.205) document.getElementById('clk-dallas').classList.add('active-zone');
+    else if(p<0.29) document.getElementById('clk-local').classList.add('active-zone');
+    else document.getElementById('clk-taipei').classList.add('active-zone');
+  }
+
+  // Scrubber
+  document.getElementById('scrubber').value=Math.round(p*1000);
+  document.getElementById('scrub-mid').textContent=Math.round(p*100)+'% complete';
+
+  // Leg pills
+  let legIdx=0;
+  for(let i=0;i<legData.length-1;i++){ if(p>=legData[i].pStart&&p<legData[i+1].pStart){legIdx=i;break;} }
+  if(p>=1) legIdx=legData.length-1;
+  document.querySelectorAll('.leg-pill').forEach((el,i)=>{
+    el.classList.toggle('active',i===legIdx);
+    el.classList.toggle('done',i<legIdx);
+  });
+  document.getElementById('legTitle').textContent=legData[legIdx].title;
+  document.getElementById('legMeta').textContent=legData[legIdx].meta;
+
+  drawGlobe(p);
+  checkTagTrigger(p);
+  renderEvents(p);
+}
+
+function renderEvents(p){
+  const list=document.getElementById('eventList');
+  list.innerHTML='';
+  let cur=-1;
+  flightEvents.forEach((e,i)=>{if(p>=e.p)cur=i;});
+  flightEvents.forEach((e,i)=>{
+    const d=document.createElement('div');
+    d.className='event-item'+(i===cur?' current':i<cur?' past':'');
+    d.innerHTML=`<div class="event-dot" style="background:${e.color};opacity:${i<=cur?1:0.22}"></div>
+      <div class="event-body"><div class="event-title">${e.title}</div>
+      <div class="event-sub-text">${e.sub}</div></div>`;
+    list.appendChild(d);
+  });
+}
+
+function selectLeg(idx){
+  simProgress=legData[idx].pStart;
+  lastDisplayedMin=-1;
+  updateUI(simProgress);
+  if(playing){playing=false;const b=document.getElementById('playBtn');b.textContent='▶';b.classList.remove('playing');}
+}
+
+function togglePlay(){
+  playing=!playing;
+  const btn=document.getElementById('playBtn');
+  btn.textContent=playing?'⏸':'▶';
+  btn.classList.toggle('playing',playing);
+  if(playing){lastTime=null;requestAnimationFrame(simStep);}
+}
+
+function restartSim(){
+  playing=false; simProgress=0; lastDisplayedMin=-1;
+  lastTagIdx=-1; lastSecIdx=-1; activeTag=null; secondaryTag=null;
+  const btn=document.getElementById('playBtn');
+  btn.textContent='▶'; btn.classList.remove('playing');
+  updateUI(0);
+}
+
+function simStep(ts){
+  if(!playing)return;
+  if(!lastTime)lastTime=ts;
+  const dt=(ts-lastTime)/1000; lastTime=ts;
+  simProgress+=(dt/60)*speed;
+  if(simProgress>=1){
+    simProgress=1; playing=false;
+    const btn=document.getElementById('playBtn');
+    btn.textContent='▶'; btn.classList.remove('playing');
+  }
+  updateUI(simProgress);
+  if(playing)requestAnimationFrame(simStep);
+}
+
+function onScrub(val){
+  simProgress=val/1000; lastDisplayedMin=-1; lastTagIdx=-1; lastSecIdx=-1; activeTag=null; secondaryTag=null;
+  if(playing){playing=false;const b=document.getElementById('playBtn');b.textContent='▶';b.classList.remove('playing');}
+  updateUI(simProgress);
+}
+
+const speeds=[1.25,2,4,8,16]; let speedIdx=0;
+function cycleSpeed(){
+  speedIdx=(speedIdx+1)%speeds.length;
+  speed=speeds[speedIdx];
+  const btn=document.getElementById('speedBtn');
+  btn.textContent=speed+'×';
+  btn.classList.toggle('fast',speed>=8);
+}
+
+function initSim(){
+  if(simInited)return; simInited=true;
+  gc.width=gc.offsetWidth||360;
+  fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/land-110m.json')
+    .then(r=>r.json())
+    .then(data=>{worldData=data;updateUI(0);})
+    .catch(()=>updateUI(0));
+}
+
+window.addEventListener('resize',()=>{
+  gc.width=gc.offsetWidth||360;
+  if(simInited)drawGlobe(simProgress);
+  initStars();
+});
+window.addEventListener('load',()=>{gc.width=gc.offsetWidth||360;});
+</script>
+</body>
+</html>
